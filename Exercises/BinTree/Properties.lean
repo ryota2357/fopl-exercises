@@ -1,4 +1,4 @@
-import Exercises.BinTree
+import Exercises.BinTree.Definition
 
 namespace BinTree
 
