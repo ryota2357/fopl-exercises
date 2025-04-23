@@ -2,25 +2,25 @@ import Exercises.BinTree
 
 namespace BinTree
 
-theorem leaf_size_one : size Leaf = 1 := rfl
+theorem size_leaf : size Leaf = 1 := rfl
 
-theorem branch_size_sum (t1 t2 : BinTree) : (Branch t1 t2).size = t1.size + t2.size + 1 := rfl
+theorem size_branch (t₁ t₂ : BinTree) : (Branch t₁ t₂).size = t₁.size + t₂.size + 1 := rfl
 
-theorem leaf_height_zero : height Leaf = 0 := rfl
+theorem height_leaf : height Leaf = 0 := rfl
 
-theorem branch_height_sum (t1 t2 : BinTree) : (Branch t1 t2).height = (max t1.height t2.height) + 1 := rfl
+theorem height_branch (t₁ t₂ : BinTree) : (Branch t₁ t₂).height = (max t₁.height t₂.height) + 1 := rfl
 
 example : size (Branch Leaf (Branch Leaf Leaf)) = 5 := by
-  repeat rw [branch_size_sum]
-  rw [leaf_size_one]
+  repeat rw [size_branch]
+  rw [size_leaf]
 
 example (t : BinTree) : size t > 0 := by
   induction t with
   | Leaf =>
-    rw [leaf_size_one]
+    rw [size_leaf]
     exact Nat.zero_lt_one
   | Branch l r hl hr =>
-    rw [branch_size_sum]
+    rw [size_branch]
     apply Nat.lt_add_right
     apply Nat.lt_trans hl
     apply Nat.lt_add_of_pos_right
@@ -29,10 +29,10 @@ example (t : BinTree) : size t > 0 := by
 example (t : BinTree) : size t > height t := by
   induction t with
   | Leaf =>
-    rw [leaf_size_one, leaf_height_zero]
+    rw [size_leaf, height_leaf]
     exact Nat.zero_lt_one
   | Branch l r hl hr =>
-    rw [branch_size_sum, branch_height_sum]
+    rw [size_branch, height_branch]
     apply Nat.add_lt_add_right
     cases Nat.le_total l.height r.height with
     | inl h =>
