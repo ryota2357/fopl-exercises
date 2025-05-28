@@ -1,3 +1,3 @@
-import Exercises.BinTree
-import Exercises.IfExpr
-import Exercises.NB
+import Exercises.BinTree.Basic
+import Exercises.IfExpr.Basic
+import Exercises.NB.Basic
