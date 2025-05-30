@@ -36,13 +36,10 @@ example (t : BinTree) : size t > height t := by
     apply Nat.add_lt_add_right
     cases Nat.le_total l.height r.height with
     | inl h =>
-      rw [Nat.max_eq_right h]
-      rw [Nat.add_comm]
-      apply Nat.le_add_right_of_le
-      apply Nat.succ_le.mpr
+      rw [Nat.max_eq_right h, Nat.add_comm]
+      apply Nat.lt_add_right l.size
       exact hr
     | inr h =>
       rw [Nat.max_eq_left h]
-      apply Nat.le_add_right_of_le
-      apply Nat.succ_le.mpr
+      apply Nat.lt_add_right r.size
       exact hl
