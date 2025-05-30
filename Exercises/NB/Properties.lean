@@ -2,6 +2,12 @@ import Exercises.NB.Definition
 
 namespace NB
 
+/-
+  NB の停止性の証明
+  - Termination measure として 項のサイズ `termSize` を用いる
+  - 任意の遷移 `t ⟶ t'` に対して `termSize t > termSize t'` が成り立つことを示す (`term_size_step`)
+-/
+
 def termSize (t : Term) : Nat :=
   match t with
   | Term.value _      => 1
@@ -10,8 +16,7 @@ def termSize (t : Term) : Nat :=
   | Term.pred t       => 1 + termSize t
   | Term.iszero t     => 1 + termSize t
 
--- `termSize` is a termination measure
-theorem term_size_step : ∀ t t' : Term, t ⟶ t' → termSize t > termSize t' := by
+theorem term_size_step : ∀ t t', t ⟶ t' → termSize t > termSize t' := by
   intros t t' h
   induction h with
   | eval_if_true t₂ t₃ =>

@@ -29,25 +29,23 @@ inductive Term where
 | iszero : Term → Term
 
 open Term
-open BoolValue
-open NatValue
 
-private abbrev t_true : Term := value (Value.bool true)
-private abbrev t_false : Term := value (Value.bool false)
-private abbrev t_zero : Term := value (Value.nat zero)
-private abbrev t_nat (n : NatValue) : Term := value (Value.nat n)
+private abbrev true' : Term := value (Value.bool BoolValue.true)
+private abbrev false' : Term := value (Value.bool BoolValue.false)
+private abbrev zero' : Term := value (Value.nat NatValue.zero)
+private abbrev succ' (n : NatValue) : Term := value (Value.nat (NatValue.succ n))
 
 inductive Step : Term → Term → Prop where
-| eval_if_true : ∀ t₂ t₃, Step (if_ t_true t₂ t₃) t₂
-| eval_if_false : ∀ t₂ t₃, Step (if_ t_false t₂ t₃) t₃
+| eval_if_true : ∀ t₂ t₃, Step (if_ true' t₂ t₃) t₂
+| eval_if_false : ∀ t₂ t₃, Step (if_ false' t₂ t₃) t₃
 | eval_if : ∀ t₁ t₁' t₂ t₃, Step t₁ t₁' → Step (if_ t₁ t₂ t₃) (if_ t₁' t₂ t₃)
 | eval_succ : ∀ t t', Step t t' → Step (succ t) (succ t')
 | eval_pred : ∀ t t', Step t t' → Step (pred t) (pred t')
 | eval_iszero : ∀ t t', Step t t' → Step (iszero t) (iszero t')
-| eval_iszero_zero : Step (iszero t_zero) t_true
-| eval_iszero_succ : ∀ n, Step (iszero (t_nat (succ n))) t_false
-| eval_pred_zero : Step (pred t_zero) t_zero
-| eval_pred_succ : ∀ n, Step (pred (t_nat (succ n))) (t_nat n)
+| eval_iszero_zero : Step (iszero zero') true'
+| eval_iszero_succ : ∀ n, Step (iszero (succ' n)) false'
+| eval_pred_zero : Step (pred zero') zero'
+| eval_pred_succ : ∀ n, Step (pred (succ' n)) (value (Value.nat n))
 
 infixl:50 " ⟶ " => Step
 
