@@ -1,5 +1,11 @@
 namespace IfExpr
 
+/-
+  t ::= if t₁ then t₂ else t₃
+      | true
+      | false
+-/
+
 inductive Term where
   | if_ : Term → Term → Term → Term
   | true : Term
