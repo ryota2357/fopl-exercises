@@ -11,54 +11,44 @@ namespace NB
 
 def termSize (t : Term) : Nat :=
   match t with
-  | Term.value _      => 1
-  | Term.if_ t₁ t₂ t₃ => 1 + termSize t₁ + termSize t₂ + termSize t₃
-  | Term.succ t       => 1 + termSize t
-  | Term.pred t       => 1 + termSize t
-  | Term.iszero t     => 1 + termSize t
+  | .value _      => 1
+  | .if_ t₁ t₂ t₃ => 1 + termSize t₁ + termSize t₂ + termSize t₃
+  | .succ t       => 1 + termSize t
+  | .pred t       => 1 + termSize t
+  | .iszero t     => 1 + termSize t
 
 theorem term_size_step : ∀ t t', t ⟶ t' → termSize t > termSize t' := by
   intros t t' h
-  induction h with
-  | eval_if_true t₂ t₃ =>
-    simp only [termSize]
+  induction h <;> simp only [termSize]
+  case eval_if_true t₂ t₃ =>
     apply Nat.lt_add_right (termSize t₃)
     apply Nat.lt_add_of_pos_left
-    apply Nat.zero_lt_succ
-  | eval_if_false t₂ t₃ =>
-    simp only [termSize]
+    exact Nat.zero_lt_succ 1
+  case eval_if_false t₂ t₃ =>
     apply Nat.lt_add_of_pos_left
     apply Nat.lt_add_right (termSize t₂)
-    apply Nat.zero_lt_succ
-  | eval_if t₁ t₁' t₂ t₃ _ ih =>
-    simp only [termSize]
+    exact Nat.zero_lt_succ 1
+  case eval_if t₁ t₁' t₂ t₃ _ ih =>
     repeat apply Nat.add_lt_add_iff_right.mpr
-    apply Nat.add_lt_add_iff_left.mpr
-    exact ih
-  | eval_succ t t' _ ih =>
-    simp only [termSize]
     apply Nat.add_lt_add_left
     exact ih
-  | eval_pred t t' _ ih =>
-    simp only [termSize]
+  case eval_succ t t' _ ih =>
     apply Nat.add_lt_add_left
     exact ih
-  | eval_iszero t t' _ ih =>
-    simp only [termSize]
+  case eval_pred t t' _ ih =>
     apply Nat.add_lt_add_left
     exact ih
-  | eval_iszero_zero =>
-    simp only [termSize]
-    apply Nat.lt_add_one
-  | eval_iszero_succ n =>
-    simp only [termSize]
-    apply Nat.lt_add_one
-  | eval_pred_zero =>
-    simp only [termSize]
-    apply Nat.lt_add_one
-  | eval_pred_succ n =>
-    simp only [termSize]
-    apply Nat.lt_add_one
+  case eval_iszero t t' _ ih =>
+    apply Nat.add_lt_add_left
+    exact ih
+  case eval_iszero_zero =>
+    exact Nat.lt_add_one 1
+  case eval_iszero_succ n =>
+    exact Nat.lt_add_one 1
+  case eval_pred_zero =>
+    exact Nat.lt_add_one 1
+  case eval_pred_succ n =>
+    exact Nat.lt_add_one 1
 
 /-
   NB の型システムの健全性 (= 進行 + 保存) の証明
@@ -71,7 +61,7 @@ theorem term_size_step : ∀ t t', t ⟶ t' → termSize t > termSize t' := by
 theorem type_progress : ∀ t τ, t ∷ τ → (∃ v, t = Term.value v) ∨ (∃ t', t ⟶ t') := by
   intros t τ h
   induction h with
-  | bool_value b =>
+  | bool b =>
     left
     use Value.bool b
   | zero =>
@@ -115,7 +105,7 @@ theorem type_progress : ∀ t τ, t ∷ τ → (∃ v, t = Term.value v) ∨ (�
       obtain ⟨t'', h'⟩ := h
       use Term.pred t''
       exact Step.eval_pred t' t'' h'
-  | iszero t ht ih =>
+  | iszero t' ht ih =>
     right
     cases ih with
     | inl h =>
@@ -135,7 +125,7 @@ theorem type_progress : ∀ t τ, t ∷ τ → (∃ v, t = Term.value v) ∨ (�
     | inr h =>
       obtain ⟨t'', h'⟩ := h
       use Term.iszero t''
-      exact Step.eval_iszero t t'' h'
+      exact Step.eval_iszero t' t'' h'
   | if_ t₁ t₂ t₃ τ' ht₁ ht₂ ht₃ ih₁ ih₂ ih₃ =>
     right
     cases ih₁ with
@@ -162,7 +152,7 @@ theorem type_preservation : ∀ t t' τ, t ∷ τ ∧ t ⟶ t' → t' ∷ τ := 
   intros t t' τ h
   obtain ⟨hl, hr⟩ := h
   induction hl generalizing t' with
-  | bool_value b =>
+  | bool b =>
     exfalso
     cases hr  -- 矛盾
   | zero =>
@@ -184,8 +174,8 @@ theorem type_preservation : ∀ t t' τ, t ∷ τ ∧ t ⟶ t' → t' ∷ τ := 
       exact h₁
   | iszero t₁ ht₁ ih =>
     cases hr with
-    | eval_iszero_zero => exact TypeJudgment.bool_value BoolValue.true
-    | eval_iszero_succ n => exact TypeJudgment.bool_value BoolValue.false
+    | eval_iszero_zero => exact TypeJudgment.bool BoolValue.true
+    | eval_iszero_succ n => exact TypeJudgment.bool BoolValue.false
     | eval_iszero _ t₁' h₁ =>
       apply TypeJudgment.iszero
       apply ih

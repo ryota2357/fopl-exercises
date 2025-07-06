@@ -32,10 +32,10 @@ inductive Term where
 
 open Term
 
-private abbrev true' : Term := value (Value.bool BoolValue.true)
-private abbrev false' : Term := value (Value.bool BoolValue.false)
-private abbrev zero' : Term := value (Value.nat NatValue.zero)
-private abbrev succ' (n : NatValue) : Term := value (Value.nat (NatValue.succ n))
+private abbrev true' : Term := value (.bool .true)
+private abbrev false' : Term := value (.bool .false)
+private abbrev zero' : Term := value (.nat .zero)
+private abbrev succ' (n : NatValue) : Term := value (.nat (.succ n))
 
 inductive Step : Term → Term → Prop where
 | eval_if_true : ∀ t₂ t₃, Step (if_ true' t₂ t₃) t₂
@@ -47,7 +47,7 @@ inductive Step : Term → Term → Prop where
 | eval_iszero_zero : Step (iszero zero') true'
 | eval_iszero_succ : ∀ n, Step (iszero (succ' n)) false'
 | eval_pred_zero : Step (pred zero') zero'
-| eval_pred_succ : ∀ n, Step (pred (succ' n)) (value (Value.nat n))
+| eval_pred_succ : ∀ n, Step (pred (succ' n)) (value (.nat n))
 
 infixl:50 " ⟶ " => Step
 
@@ -62,13 +62,13 @@ inductive TermType where
 | nat : TermType
 
 inductive TypeJudgment : Term → TermType → Prop where
-| bool_value : ∀ b, TypeJudgment (value (Value.bool b)) TermType.bool
-| zero : TypeJudgment zero' TermType.nat
-| succ : ∀ t, TypeJudgment t TermType.nat → TypeJudgment (succ t) TermType.nat
-| pred : ∀ t, TypeJudgment t TermType.nat → TypeJudgment (pred t) TermType.nat
-| iszero : ∀ t, TypeJudgment t TermType.nat → TypeJudgment (iszero t) TermType.bool
+| bool : ∀ b, TypeJudgment (value (.bool b)) .bool
+| zero : TypeJudgment zero' .nat
+| succ : ∀ t, TypeJudgment t .nat → TypeJudgment (succ t) .nat
+| pred : ∀ t, TypeJudgment t .nat → TypeJudgment (pred t) .nat
+| iszero : ∀ t, TypeJudgment t .nat → TypeJudgment (iszero t) .bool
 | if_ : ∀ t₁ t₂ t₃, ∀ τ,
-    TypeJudgment t₁ TermType.bool → TypeJudgment t₂ τ → TypeJudgment t₃ τ →
+    TypeJudgment t₁ .bool → TypeJudgment t₂ τ → TypeJudgment t₃ τ →
     TypeJudgment (if_ t₁ t₂ t₃) τ
 
 infixl:40 " ∷ " => TypeJudgment
@@ -76,7 +76,7 @@ infixl:40 " ∷ " => TypeJudgment
 /-
   このNBと型付け規則の問題: 次の補題が証明できない
 
-    lemma nat_value_has_nat_type : ∀ n, (value (Value.nat n)) ∷ TermType.nat := by
+    lemma nat_value_has_nat_type : ∀ n, (value (.nat n)) ∷ .nat := by
       intro n
       induction n with
       | zero => exact TypeJudgment.zero
@@ -95,20 +95,20 @@ infixl:40 " ∷ " => TypeJudgment
 -- 方法(1): 型付け規則に入れてしまう。
 -- inductive TypeJudgment : ... where
 -- ...
--- | nat_value : ∀ n, TypeJudgment (value (Value.nat n)) TermType.nat
+-- | nat_value : ∀ n, TypeJudgment (value (.nat n)) .nat
 
 -- 方法(1)での証明
--- lemma nat_value_has_nat_type : ∀ n, (value (Value.nat n)) ∷ TermType.nat := by
+-- lemma nat_value_has_nat_type : ∀ n, (value (Value.nat n)) ∷ .nat := by
 --   exact fun n ↦ TypeJudgment.nat_value n
 
 -- 方法(2): succ(n) は値としても項としても同じ形をしている。
-axiom succ_term_nat_eq_term_succ_nat : ∀ n, (succ (value (Value.nat n))) = (value (Value.nat (NatValue.succ n)))
+axiom succ_term_nat_eq_term_succ_nat : ∀ n, (succ (value (.nat n))) = (value (.nat (.succ n)))
 
 -- 方法(2)での証明
-lemma nat_value_has_nat_type : ∀ n, (value (Value.nat n)) ∷ TermType.nat := by
+lemma nat_value_has_nat_type : ∀ n, (value (.nat n)) ∷ .nat := by
   intro n
   induction n with
   | zero => exact TypeJudgment.zero
   | succ n' ih =>
     rw [← succ_term_nat_eq_term_succ_nat n']
-    exact TypeJudgment.succ (value (Value.nat n')) ih
+    exact TypeJudgment.succ (value (.nat n')) ih
